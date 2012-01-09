@@ -22,17 +22,19 @@ object Dependencies {
     "org.hamcrest" % "hamcrest-core" % "1.2" % "test",
     "org.mockito" % "mockito-core" % "1.8.5" % "test"
   )
+
+  val junit4SBT = "com.novocode" % "junit-interface" % "0.7" % "test->default"
 }
 
 object WS extends Build {
   import Dependencies._
   import BuildSettings._
 
-  lazy val root = Project("root", file("."), settings =
-  buildSettings ++ Seq(libraryDependencies ++= deps)
-  :+ (parallelExecution in Test := false)
-  :+ (classDirectory in Compile <<= target in Compile apply { _ / "classes" })
-  :+ (classDirectory in Test <<= target in Test apply { _ / "test-classes" }))
-
+  lazy val root =
+    Project("root", file("."),
+        settings = buildSettings ++ Seq(libraryDependencies ++= (deps :+junit4SBT))
+          :+ (parallelExecution in Test := false)
+          :+ (classDirectory in Compile <<= target in Compile apply { _ / "classes" })
+          :+ (classDirectory in Test <<= target in Test apply { _ / "test-classes" })
+  )
 }
-
