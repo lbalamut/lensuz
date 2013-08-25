@@ -1,7 +1,7 @@
 import sbt._
 import Keys._
 
-object SkeletonBuild extends Build {
+object LenzMacrosBuild extends Build {
 
     val sharedSettings = Project.defaultSettings ++ Seq(
         organization        := "eu.balamut",
@@ -43,6 +43,9 @@ object SkeletonBuild extends Build {
         publishArtifact in (Test, packageDoc) := false,
 
         pomIncludeRepository := { x => false },
+
+//        resolvers += Resolver.sonatypeRepo("snapshots"),
+//        addCompilerPlugin("org.scala-lang.plugins" % "macro-paradise_2.10.3-RC1" % "2.0.0-SNAPSHOT"),
 
         pomExtra := (
             <url>https://github.com/lbalamut/sbt-skeleton</url>
