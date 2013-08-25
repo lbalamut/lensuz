@@ -5,14 +5,15 @@ object SkeletonBuild extends Build {
 
     val sharedSettings = Project.defaultSettings ++ Seq(
         organization        := "eu.balamut",
-        version             := "0-SNAPSHOT",
-        scalaVersion        := "2.10.1",
-        crossScalaVersions  := Seq("2.9.2", "2.10.1"),
+        version             := "1",
+        scalaVersion        := "2.10.2",
 
         libraryDependencies ++= Seq(
-            "org.scalaz" %% "scalaz-core" % "7.0.0-M9",
-            "org.scalatest" %% "scalatest" % "1.9.1" % "test"
+            "org.scalaz" %% "scalaz-core" % "7.0.2",
+            "org.scalatest" %% "scalatest" % "2.0.M5b" % "test"
         ),
+
+        libraryDependencies <+= (scalaVersion)("org.scala-lang" % "scala-reflect" % _),
 
         resolvers       ++= Seq(
             "snapshots" at "http://oss.sonatype.org/content/repositories/snapshots",
@@ -20,43 +21,47 @@ object SkeletonBuild extends Build {
             "Concurrent Maven Repo" at "http://conjars.org/repo"
         ),
 
-        parallelExecution in Test := false,
+        scalacOptions   ++= Seq(
+              "-g:vars",
+              "-unchecked", "-deprecation",
+              "-encoding", "UTF8",
+              "-feature",
+              "-language:implicitConversions", "-language:postfixOps",
+              "-Xfatal-warnings",
+              "-target:jvm-1.6"),
 
-        scalacOptions   ++= Seq("-g:vars", "-unchecked", "-deprecation", "-encoding", "UTF8", "-feature", "-language:implicitConversions", "-language:postfixOps", "-Xfatal-warnings"),
-        javacOptions    ++= Seq("-g", "-encoding", "UTF8", "-Xlint:all", "-Xlint:-serial", "-Xlint:-path", "-Werror"),
+        javacOptions    ++= Seq(
+              "-g", "-encoding", "UTF8",
+              "-Xlint:all", "-Xlint:-serial", "-Xlint:-path",
+              "-Werror",
+              "-Xlint:-options", "-source", "6", "-target", "6"),
 
         publishMavenStyle := true,
 
-        publishArtifact in Test := false,
+        publishArtifact in Test := true,
+        publishArtifact in packageDoc := false,
+        publishArtifact in (Test, packageDoc) := false,
 
         pomIncludeRepository := { x => false },
 
         pomExtra := (
-            <url>https://github.com/twitter/scalding</url>
-            <licenses>
-                <license>
-                    <name>Apache 2</name>
-                    <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-                    <distribution>repo</distribution>
-                </license>
-            </licenses>
+            <url>https://github.com/lbalamut/sbt-skeleton</url>
             <scm>
                 <url>git@github.com:lbalamut/sbt-skeleton.git</url>
                 <connection>scm:git:git@github.com:lbalamut/sbt-skeleton.git</connection>
             </scm>
             <developers>
                 <developer>
-                    <id>posco</id>
+                    <id>lbalamut</id>
                     <name>Lukasz Balamut</name>
-                    <url>http://twitter.com/posco</url>
+                    <url>http://twitter.com/lbalamut</url>
                 </developer>
             </developers>)
     )
 
-    lazy val root =
-        Project(
-            id = "root",
-            base = file("."),
-            settings = sharedSettings
-        )
+    lazy val core = Project(
+        id = "root",
+        base = file("."),
+        settings = sharedSettings
+    )
 }
