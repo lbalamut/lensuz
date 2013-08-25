@@ -33,4 +33,5 @@ class LenzerTest extends FunSuite {
 
         assert(nameL.mod(n => n + " mod", t).name === "name mod")
     }
+
 }
