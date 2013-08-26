@@ -8,7 +8,7 @@ import scalaz.Lens
 object Lenzer {
     def forField[S, T](fieldName: String): Lens[S, T] = macro LenzerMacros.forField[S, T]
 
-    def forAllFields[T]: AnyRef = macro LenzerMacros.forAllFields[T]
+    def forAllFields[T]: Any = macro LenzerMacros.forAllFields[T]
 }
 
 object LenzerMacros {
@@ -95,7 +95,7 @@ object LenzerMacros {
         )
     }
 
-    def forAllFields[T: c.WeakTypeTag](c: scala.reflect.macros.Context): c.Expr[AnyRef] = {
+    def forAllFields[T: c.WeakTypeTag](c: scala.reflect.macros.Context) = {
         import c.universe._
 
         val sourceT = c.weakTypeOf[T]
@@ -110,30 +110,40 @@ object LenzerMacros {
 //                    lensForMember(c)(name, sourceT, targetT)
 //                )
 
-                ValDef(Modifiers(Flag.PROTECTED), newTermName(name),
+                ValDef(Modifiers(), newTermName(name),
                     lensTypeTree,
                     lensForMember(c)(name, sourceT, targetT)
                 )
 
         }.toList
 
+        val anon = newTypeName(c.fresh)
+        val wrapper = newTypeName(c.fresh)
+
         val lenzerObject = Block(
             List(
-                ClassDef(Modifiers(Flag.FINAL), newTypeName("$anon"), List(),
-                    Template(
-                        List(Ident(c.mirror.staticClass("java.lang.Object"))),
-                        emptyValDef,
-
-                        (DefDef(Modifiers(), nme.CONSTRUCTOR, List(), List(List()), TypeTree(), Block(List(Apply(Select(Super(This(tpnme.EMPTY), tpnme.EMPTY), nme.CONSTRUCTOR), List())), Literal(Constant(())))) :: valLensez)
+                ClassDef(Modifiers(), anon, List(),
+                    Template(Nil, emptyValDef,
+                        (constructor(c) :: valLensez)
                     )
+                ),
+                ClassDef(
+                    Modifiers(Flag.FINAL), wrapper, Nil,
+                    Template(Ident(anon) :: Nil, emptyValDef, List(constructor(c)))
                 )
             ),
-            Apply(Select(New(Ident(newTypeName("$anon"))), nme.CONSTRUCTOR), List())
+            Apply(Select(New(Ident(wrapper)), nme.CONSTRUCTOR), Nil)
         )
 
 //        println(lenzerObject)
 
-        c.Expr[AnyRef](c.resetAllAttrs(lenzerObject))
+        c.Expr(c.resetAllAttrs(lenzerObject))
+    }
+
+    private def constructor(c: scala.reflect.macros.Context) = {
+        import c.universe._
+
+        DefDef(Modifiers(), nme.CONSTRUCTOR, List(), List(List()), TypeTree(), Block(List(Apply(Select(Super(This(tpnme.EMPTY), tpnme.EMPTY), nme.CONSTRUCTOR), List())), Literal(Constant(()))))
     }
 }
 

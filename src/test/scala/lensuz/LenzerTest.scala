@@ -43,12 +43,16 @@ class LenzerTest extends FunSuite {
         assert(nameL.mod(n => n + " mod", t).name === "name mod")
     }
 
-
     test("one big lenser") {
         val t = Outer(name = "name", inner = Inner("a"))
 
-        val nameL = Lenzer.forAllFields[Outer].asInstanceOf[{val name: scalaz.Lens[Outer, String]}].name
+        val nameL = Lenzer.forAllFields[Outer].name
+
         assert(nameL.set(t, "other name").name === "other name")
         assert(nameL.mod(n => n + " mod", t).name === "name mod")
+
+        val innerL = Lenzer.forAllFields[Outer].inner
+        assert(innerL.set(t, Inner("b")).inner.member === "b")
     }
+
 }
